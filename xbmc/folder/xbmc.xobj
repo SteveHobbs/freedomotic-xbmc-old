@@ -3,7 +3,7 @@
   <description>An xbmc media centre</description>
   <actAs>unimplemented</actAs>
   <type>EnvObject.ElectricDevice</type>
-  <hierarchy>it.freedomotic.objects.impl.XBMC</hierarchy> 
+  <hierarchy>com.stevehobbs.xbmc.objects.XBMC</hierarchy> 
   <protocol>unknown</protocol>
   <phisicalAddress>unknown</phisicalAddress>
   <behaviors>
