@@ -1,10 +1,11 @@
-package it.freedomotic.objects.impl;
+package com.stevehobbs.xbmc.objects;
 
 import it.freedomotic.model.ds.Config;
 import it.freedomotic.model.object.BooleanBehavior;
 import it.freedomotic.objects.BooleanBehaviorLogic;
 import it.freedomotic.objects.impl.ElectricDevice;
 import it.freedomotic.model.ds.Config;
+import it.freedomotic.objects.impl.ElectricDevice;
 /**
  *
  * @author steve

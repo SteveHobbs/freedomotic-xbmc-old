@@ -1,4 +1,4 @@
-package it.freedomotic.plugins.devices.xbmc;
+package com.stevehobbs.xbmc;
 
 import it.freedomotic.api.EventTemplate;
 import it.freedomotic.api.Protocol;

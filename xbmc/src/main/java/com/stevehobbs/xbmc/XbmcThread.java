@@ -1,4 +1,4 @@
-package it.freedomotic.plugins.devices.xbmc;
+package com.stevehobbs.xbmc;
 
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonToken;
