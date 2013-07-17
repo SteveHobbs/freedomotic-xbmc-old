@@ -20,7 +20,7 @@ import java.util.ArrayList;
     
     public Xbmc() {
     //every plugin needs a name and a manifest XML file
-    super("Xbmc", "/com.freedomotic.xbmc/xbmc-manifest.xml");
+    super("Xbmc", "/com.stevehobbs.xbmc/xbmc-manifest.xml");
     //read a property from the manifest file below which is in
     //FREEDOMOTIC_FOLDER/plugins/devices/it.freedomotic.xbmc/xbmc.xml
     POLLING_WAIT = configuration.getIntProperty("time-between-reads", 2000); // Not sure if needed?

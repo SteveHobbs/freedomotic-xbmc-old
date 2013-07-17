@@ -1,0 +1,31 @@
+<config>
+    <properties>
+        <property name="name" value="${project.name}"/>
+        <property name="description" value="It is an ${project.name}"/>
+        <property name="category" value="${project.name}"/>
+        <property name="short-name" value="${project.name}"/>
+        <property name="startup-time"   value="on load"/>
+    </properties>
+<tuples>
+  <tuple>
+    <property name = "System" value = "W7"/>
+    <property name = "XBMCHost" value = "W7"/>
+    <property name = "XBMCPort" value = "9090"/>
+    <property name = "Location" value = "Study"/>
+  </tuple>
+  <tuple>
+    <property name = "System" value = "Intel"/>
+    <property name = "XBMCHost" value = "Intel"/>
+    <property name = "XBMCPort" value = "9090"/>
+    <property name = "Location" value = "Living Room"/>
+  </tuple>
+  <tuple>
+    <property name = "System" value = "steve-mac"/>
+    <property name = "XBMCHost" value = "steve-mac"/>
+    <property name = "XBMCPort" value = "9090"/>
+    <property name = "Location" value = "Laptop"/>
+  </tuple>
+</tuples> 
+</config>
+
+                
