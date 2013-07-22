@@ -87,9 +87,9 @@ import java.util.ArrayList;
             System.out.println("Host : "+ thisHost + " State : " + thisState); // just checking to see if any die
         }
 
-        ProtocolRead event = new ProtocolRead(this, "XBMC", "XBMC-W7");
-        event.addProperty("powered","true");
-        Freedomotic.sendEvent(event);
+  //      ProtocolRead event = new ProtocolRead(this, "XBMC", "XBMC-W7");
+   //     event.addProperty("onoff","true");
+    //    Freedomotic.sendEvent(event);
              
     }
         //at the end of this method the system waits POLLINGTIME 

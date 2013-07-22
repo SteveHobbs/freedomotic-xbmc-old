@@ -78,9 +78,9 @@ public class XbmcThread implements Runnable {
                 fullMessage = fullMessage + "|" + fieldName;
                 jasonParser.nextToken(); // move to value, or START_OBJECT/START_ARRAY
                 fullMessage = fullMessage + ":" + jasonParser.getText();
-                if ("method".equals(fieldName)) { // contains an object
+                if ("method".equals(fieldName)) { // contains an object in normal XBMC message structure
                     methodXbmc = jasonParser.getText();
-                } else if("id".equals(fieldName)) {
+                } else if("id".equals(fieldName)) { //
                     senderXbmc = jasonParser.getText();
                     while (jasonParser.nextToken() != JsonToken.END_OBJECT) {
                         fieldName = jasonParser.getCurrentName();
@@ -97,13 +97,13 @@ public class XbmcThread implements Runnable {
             // Do stuff here
             Freedomotic.logger.severe(str+" : "+fullMessage); //log xbmc action for now
             Freedomotic.logger.severe(str+" : "+ senderXbmc + " : " + methodXbmc); //log xbmc action for now
-            if (methodXbmc.equals("System.OnQuit")) {
+            //if (methodXbmc.equals("System.OnQuit")) {
                 ProtocolRead event = new ProtocolRead(this, "XBMC", str);
-                    event.addProperty("XBMC.function","ON");
-                    event.addProperty("object.class","XBMC");
-                    event.addProperty("object.name", "XBMC" + str);
+                    event.addProperty("powered","true");
+                    //event.addProperty("object.class","XBMC");
+                    event.addProperty("object.name", "XBMC-" + str);
                Freedomotic.sendEvent(event);
-            }
+            //}
      
         } 
         
@@ -115,9 +115,6 @@ public class XbmcThread implements Runnable {
     }
 
     public void sendJsonPing(BufferedOutputStream outPingStream) throws IOException {
-        String methodXbmc = "";
-        String fieldName = "";
-        String fullMessage = "";
         JsonFactory factory = new JsonFactory();
  
         JsonGenerator jasonGenerator = factory.createJsonGenerator(outPingStream,JsonEncoding.UTF8);

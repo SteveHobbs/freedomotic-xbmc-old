@@ -1,9 +1,9 @@
-#Wed Jul 17 22:10:54 BST 2013
+#Sun Jul 21 23:06:21 BST 2013
 package.vendor.nation=com
 package.license=GNU GPL2
 package.vendor.name=stevehobbs
 package.name=com.stevehobbs.xbmc
-framework.required.minor=5
+framework.required.minor=4
 package.vendor.surname=Steve
 package.vendor.contact=info@stevehobbs.com
 package.nodeid=999932
