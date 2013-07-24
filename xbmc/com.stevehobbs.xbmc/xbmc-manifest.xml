@@ -1,5 +1,6 @@
 <config>
     <properties>
+	<property name="protocol.name" value = "XBMC"/>
         <property name="name" value="xbmc"/>
         <property name="description" value="A plugin to detect the status of xbmc devices and trigger events"/>
         <property name="category" value="system"/>

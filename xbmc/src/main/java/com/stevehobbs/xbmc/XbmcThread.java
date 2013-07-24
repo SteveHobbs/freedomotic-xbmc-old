@@ -31,7 +31,7 @@ public class XbmcThread implements Runnable {
         
         do{
             try{
-                while (myInputStream ==null) {
+                while (myInputStream == null) {
                     Streams myStreams = new Streams(str,port);
                     Thread.sleep(4000); //really only needed for retry logic
                     myInputStream = myStreams.getInputStream();
@@ -42,10 +42,10 @@ public class XbmcThread implements Runnable {
                 }
             } 
             catch(InterruptedException ieException){
-                 System.out.println(str+ " interruption"); //Not sure what to do here
+                 System.out.println(str + " interruption"); //Not sure what to do here
             }
             catch(IOException ioException){
-                System.out.println(str+ " ioException");//lost the stream probably, xbmc closed? 
+                System.out.println(str + " ioException");//lost the stream probably, xbmc closed? 
                 myInputStream = null; //Stream has gone away get get new one
             }
             
@@ -66,9 +66,15 @@ public class XbmcThread implements Runnable {
         String senderXbmc = "";
         String fieldName = "";
         String fullMessage = "";
+        String playerType = "";
         JsonFactory factory = new JsonFactory();
         JsonParser jasonParser = factory.createJsonParser(inJsonStream);
         jasonParser.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE); //stop jasonParser.close from closing stream
+        
+/* use the streaming json parse approach, faster.  But by treating every field as a field & not looking at the objects
+ * the sw does a depth first search down the first leg & finishes. This happens to give the player information we want,
+ * BUT probably not robust enough for production??
+*/
         try{
             if (jasonParser.nextToken() != JsonToken.START_OBJECT) {
                 throw new IOException("no data") ; //stream probably went away                   
@@ -80,29 +86,33 @@ public class XbmcThread implements Runnable {
                 fullMessage = fullMessage + ":" + jasonParser.getText();
                 if ("method".equals(fieldName)) { // contains an object in normal XBMC message structure
                     methodXbmc = jasonParser.getText();
-                } else if("id".equals(fieldName)) { //
+                } else if("id".equals(fieldName)) { // in this position its a pong response from xbmc & should = "freedomotic"
                     senderXbmc = jasonParser.getText();
                     while (jasonParser.nextToken() != JsonToken.END_OBJECT) {
-                        fieldName = jasonParser.getCurrentName();
-                        jasonParser.nextToken();// move to value
-                        if("id".equals(fieldName)) {
+                        fieldName = jasonParser.getCurrentName(); //could be an object or a string
+                        jasonParser.nextToken(); // move to value
+                        if("sender".equals(fieldName)) {
                             senderXbmc = jasonParser.getText();
+                        }
+                        if("type".equals(fieldName)) {
+                            playerType = jasonParser.getText();
                         }
                     }
                 }
-            } //finished parsing the current json message
+            } 
+            //finished parsing the current json message
             if (methodXbmc.equals("")) { //if we didn't find a std xbmc msg pickup the last fieldname
                 methodXbmc = fieldName;
             }
             // Do stuff here
-            Freedomotic.logger.severe(str+" : "+fullMessage); //log xbmc action for now
+            Freedomotic.logger.severe("Host : "+ str + " ?parsed Json : " + fullMessage); //log semi parsed results for now
             Freedomotic.logger.severe(str+" : "+ senderXbmc + " : " + methodXbmc); //log xbmc action for now
             //if (methodXbmc.equals("System.OnQuit")) {
-                ProtocolRead event = new ProtocolRead(this, "XBMC", str);
-                    event.addProperty("powered","true");
-                    //event.addProperty("object.class","XBMC");
-                    event.addProperty("object.name", "XBMC-" + str);
-               Freedomotic.sendEvent(event);
+            //    ProtocolRead event = new ProtocolRead(this, "xbmc", str);
+            //        event.addProperty("powered","true");
+            //        //event.addProperty("object.class","XBMC");
+            //        event.addProperty("object.name", "XBMC-" + str);
+            //   Freedomotic.sendEvent(event);
             //}
      
         } 

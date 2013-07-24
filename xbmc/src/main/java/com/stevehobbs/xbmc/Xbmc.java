@@ -15,6 +15,7 @@ import java.util.ArrayList;
     final int POLLING_WAIT;
     List<XbmcSystem> systemList = new ArrayList<XbmcSystem>();
     Integer numberOfThreads;
+            String stateToSend = "false";
     // phase 2 pick up from manifest file in a list
     // pass 3 (?) use bonjor/JmDNS to detect notifications automatically  ??maybe              
     
@@ -75,6 +76,7 @@ import java.util.ArrayList;
     @Override
     protected void onRun() {
         XbmcSystem thisXbmcSystem;
+
         String thisHost;
         String thisState;
         Thread thisThread;
@@ -87,9 +89,18 @@ import java.util.ArrayList;
             System.out.println("Host : "+ thisHost + " State : " + thisState); // just checking to see if any die
         }
 
-  //      ProtocolRead event = new ProtocolRead(this, "XBMC", "XBMC-W7");
-   //     event.addProperty("onoff","true");
-    //    Freedomotic.sendEvent(event);
+        if (stateToSend.equals("false")){
+            stateToSend = "true";
+        } else {
+            stateToSend = "false";
+        }
+        ProtocolRead event = new ProtocolRead(this, "xbmc", "W7");
+        event.addProperty("powered",stateToSend);
+        event.addProperty("object.class","XBMC");
+        event.addProperty("object.name", "XBMC-W7");
+        Freedomotic.sendEvent(event);
+        System.out.println("Host : "+ "W7 " + " State : " + stateToSend);
+        
              
     }
         //at the end of this method the system waits POLLINGTIME 

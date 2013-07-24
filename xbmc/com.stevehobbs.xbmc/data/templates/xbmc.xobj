@@ -4,7 +4,7 @@
   <actAs>unimplemented</actAs>
   <type>EnvObject.ElectricDevice</type>
   <hierarchy>it.freedmotic,objects.impl</hierarchy> 
-  <protocol>unknown</protocol>
+  <protocol>XBMC</protocol>
   <phisicalAddress>unknown</phisicalAddress>
   <behaviors>
     <it.freedomotic.model.object.BooleanBehavior>
