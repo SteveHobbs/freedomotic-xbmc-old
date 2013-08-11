@@ -3,7 +3,6 @@ package com.stevehobbs.xbmc;
 import it.freedomotic.api.EventTemplate;
 import it.freedomotic.api.Protocol;
 import it.freedomotic.app.Freedomotic;
-import it.freedomotic.events.ProtocolRead;
 import it.freedomotic.exceptions.UnableToExecuteException;
 import it.freedomotic.reactions.Command;
 import java.io.IOException;import java.util.List;
@@ -14,10 +13,6 @@ import java.util.ArrayList;
     public class Xbmc extends Protocol {
     final int POLLING_WAIT;
     List<XbmcSystem> systemList = new ArrayList<XbmcSystem>();
-    Integer numberOfThreads;
-            String stateToSend = "false";
-    // phase 2 pick up from manifest file in a list
-    // pass 3 (?) use bonjor/JmDNS to detect notifications automatically  ??maybe              
     
     public Xbmc() {
     //every plugin needs a name and a manifest XML file
@@ -28,29 +23,22 @@ import java.util.ArrayList;
     //POLLING_WAIT is the value of the property "time-between-reads" or 2000 millisecs,
     //default value if the property does not exist in the manifest
     setPollingWait(POLLING_WAIT); //millisecs interval between hardware device status reads
+    
     loadXbmcSystems();
+    
     }
     
     @Override
     protected void onStart() {
-        // will pickup address & port from manifest or Bonjour/JmDNS in next phases
-        // not sure about thread handling standards in freedomotic??
-        
-        System.out.println("Number of Tuples = " + numberOfThreads); 
-        Freedomotic.logger.severe("Number of Tuples = " + numberOfThreads); 
-        
-        XbmcSystem thisXbmcSystem;
+
         String thisHost;
         Integer thisPort;
         Thread thisThread;
-        for (Integer counter =0 ; counter < numberOfThreads ; counter++){
-            thisXbmcSystem = systemList.get(counter);
-            thisHost = thisXbmcSystem.getxbmcHost();
-            thisPort = thisXbmcSystem.getXbmcPort();
-            thisThread = new Thread(new XbmcThread(thisHost,thisPort), "xbmcPluginThread"+counter);
+                
+        for (XbmcSystem thisXbmcSystem : systemList) {
+            thisThread = new Thread(new XbmcThread(thisXbmcSystem), "xbmcPluginThread" + systemList.indexOf(thisXbmcSystem));
             thisXbmcSystem.setXbmcThread(thisThread);
             thisXbmcSystem.getXbmcThread().start();
-            System.out.println("xbmcPluginThread" + counter + "started");
         }
    
         Freedomotic.logger.info("XBMC plugin is started");
@@ -63,7 +51,7 @@ import java.util.ArrayList;
          * started with a right-click on plugin list on the desktop frontend
          * (it.freedomotic.jfrontend plugin)
          */
-        //bindGuiToPlugin(new HelloWorldGui(this));
+        //bindGuiToPlugin(new Xbmc(this));
     }
 
     @Override
@@ -75,47 +63,27 @@ import java.util.ArrayList;
 
     @Override
     protected void onRun() {
-        XbmcSystem thisXbmcSystem;
 
         String thisHost;
         String thisState;
         Thread thisThread;
-        Freedomotic.logger.info("xbmc onRun() logs this message every "
-                + "POLLINGWAIT=" + POLLING_WAIT + "milliseconds");
-        for (Integer counter = 0 ; counter < numberOfThreads ; counter++){
-            thisXbmcSystem = systemList.get(counter);
-            thisHost = thisXbmcSystem.getxbmcHost();
+
+        for (XbmcSystem thisXbmcSystem : systemList) {
+            thisHost = thisXbmcSystem.getXbmcHost();
             thisState = thisXbmcSystem.getXbmcThread().getState().toString();
-            System.out.println("Host : "+ thisHost + " State : " + thisState); // just checking to see if any die
+           // System.out.println("Host : "+ thisHost + " State : " + thisState); // just checking to see if any die
         }
-
-        if (stateToSend.equals("false")){
-            stateToSend = "true";
-        } else {
-            stateToSend = "false";
-        }
-        ProtocolRead event = new ProtocolRead(this, "xbmc", "W7");
-        event.addProperty("powered",stateToSend);
-        event.addProperty("object.class","XBMC");
-        event.addProperty("object.name", "XBMC-W7");
-        Freedomotic.sendEvent(event);
-        System.out.println("Host : "+ "W7 " + " State : " + stateToSend);
-        
-             
+            
     }
-        //at the end of this method the system waits POLLINGTIME 
-        //before calling it again. The result is this log message is printed
-        //every 2 seconds (2000 millisecs)
-    
-
+ 
     @Override
     protected void onStop() {
-        Freedomotic.logger.info("HelloWorld plugin is stopped ");
+        Freedomotic.logger.info("XBMC plugin is stopped ");
     }
 
     @Override
     protected void onCommand(Command c) throws IOException, UnableToExecuteException {
-        Freedomotic.logger.info("HelloWorld plugin receives a command called " + c.getName()
+        Freedomotic.logger.info("XBMC plugin receives a command called " + c.getName()
                 + " with parameters " + c.getProperties().toString());
     }
 
@@ -138,10 +106,11 @@ import java.util.ArrayList;
     Integer xbmcPort;
     String xbmcLocation;
     String result;
+    Integer numberOfSystems;
     
-    numberOfThreads = configuration.getTuples().size();
+    numberOfSystems = configuration.getTuples().size();
     
-    for (counter = 0 ; counter < numberOfThreads; counter++) {
+    for (counter = 0 ; counter < numberOfSystems; counter++) {
         result = configuration.getTuples().getProperty(counter, "System");
         if (result != null) { 
              xbmcHost = configuration.getTuples().getStringProperty(counter, "XBMCHost", "localhost");
@@ -150,8 +119,8 @@ import java.util.ArrayList;
              xbmcLocation =  configuration.getTuples().getStringProperty(counter, "Location", "none");
              XbmcSystem xbmcSystem = new XbmcSystem(xbmcName, xbmcHost,xbmcPort,xbmcLocation);
              systemList.add(xbmcSystem);
-         }
-    }  
+            }
+        }  
     } 
 
 }

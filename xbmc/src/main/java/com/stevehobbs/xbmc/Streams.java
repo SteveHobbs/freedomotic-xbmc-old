@@ -6,8 +6,10 @@ package com.stevehobbs.xbmc;
 
 import it.freedomotic.app.Freedomotic;
 import java.io.BufferedOutputStream;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 
 /**
@@ -19,19 +21,20 @@ public class Streams {
     //eg for when xbmc systems are switched on/off
     Socket requestSocket;
     BufferedOutputStream outStream;
-    InputStream isStream; // Using input stream as supposed to be faster than buffered
+    BufferedInputStream inStream; // Using input stream as supposed to be faster than buffered???
     
-    public Streams(String str, Integer port){
+    public Streams(String host, Integer port){
 
         try {
-            requestSocket = new Socket(str, port);
+            requestSocket = new Socket(host, port);
             outStream = new BufferedOutputStream(requestSocket.getOutputStream());
             outStream.flush();
-            isStream= requestSocket.getInputStream();
-            Freedomotic.logger.severe(str + " : streams set up"); //leave in for now
+            inStream = new BufferedInputStream(requestSocket.getInputStream(),8096); //use big buffer for input
+            Freedomotic.logger.severe(host + " : streams set up"); //leave in for now
         }
         
         catch(IOException ioException){
+            //Freedomotic.logger.severe(str + " : IO exception setting up stream"); //leave in for now
             //error, close socket & stream and set stream = null to force get new stream,
             closeAllStreams(); //not sure this is good??
            
@@ -40,17 +43,17 @@ public class Streams {
 }
     
     public InputStream getInputStream(){
-        return isStream;
+        return inStream;
     }
     
-   public BufferedOutputStream getOutputStream(){
+   public OutputStream getOutputStream(){
         return outStream;
     } 
    public Socket getSocket(){
         return requestSocket;
     } 
    public void closeAllStreams() {
-       //try & close naything thats open so we can start again
+       //try & close anything thats open so we can start again
        //need to check on resource usage etc
         InputStream myInputStream = getInputStream();
         if (myInputStream != null) {
@@ -59,7 +62,7 @@ public class Streams {
         }
         catch(IOException ioException){}
         }
-        BufferedOutputStream myOutputStream = getOutputStream();
+        OutputStream myOutputStream = getOutputStream();
         if (myOutputStream != null) {
             try{
                 myOutputStream.close();

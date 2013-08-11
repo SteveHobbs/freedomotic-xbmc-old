@@ -15,37 +15,40 @@ import java.io.*;
  * @author steve
  */
 public class XbmcThread implements Runnable {
-    private String str;
-    private Integer port;
+    private XbmcSystem myXbmcSystem;
+    OutputStream myOutputStream = null;
+    InputStream myInputStream = null;
     
-    public XbmcThread(String str, Integer port) {
-//	super(str);
-        this.str = str;
-        this.port = port;
+    public XbmcThread(XbmcSystem myXbmcSystem) {
+        this.myXbmcSystem = myXbmcSystem;
     }
     
      @Override
      public void run() {
-        BufferedOutputStream myOutputStream = null;
-        InputStream myInputStream = null;
+        
+        Boolean firstPass = true;
         
         do{
             try{
                 while (myInputStream == null) {
-                    Streams myStreams = new Streams(str,port);
-                    Thread.sleep(4000); //really only needed for retry logic
+                    if (firstPass == false) {
+                        Thread.sleep(4000); // only needed for retry logic
+                    }
+                    firstPass = false;
+                    Streams myStreams = new Streams(myXbmcSystem.getXbmcHost(),myXbmcSystem.getXbmcPort());
                     myInputStream = myStreams.getInputStream();
                     myOutputStream = myStreams.getOutputStream();
-                    if(myOutputStream != null) {
-                       sendJsonPing(myOutputStream);//Do an initial ping when xbmc connected, need to check timing of response
+                    if(myOutputStream != null) { // Ping for power
+                        sendJsonPing();
                     }
                 }
             } 
             catch(InterruptedException ieException){
-                 System.out.println(str + " interruption"); //Not sure what to do here
+                 //Freedomotic.logger.severe(myXbmcSystem.getXbmcHost()+" : ieException from set up streams main loop"); //Not sure what to do here
+                 myInputStream = null; //Stream has gone away get get new one
             }
             catch(IOException ioException){
-                System.out.println(str + " ioException");//lost the stream probably, xbmc closed? 
+                //Freedomotic.logger.severe(myXbmcSystem.getXbmcHost()+" : ioException from set up streams main loop"); //lost the stream probably, xbmc closed? 
                 myInputStream = null; //Stream has gone away get get new one
             }
             
@@ -55,88 +58,179 @@ public class XbmcThread implements Runnable {
                 }
             } 
             catch (IOException ioException) {
+                //Freedomotic.logger.severe(myXbmcSystem.getXbmcHost()+" : ioException from parseJson main loop"); //lost the stream probably, xbmc closed?
                 myInputStream = null; //Stream has gone away get get new one
             }
         } while (true);
      }
      
      
-    public void parseJson(InputStream inJsonStream, BufferedOutputStream outJsonStream) throws IOException {
-        String methodXbmc = "";
-        String senderXbmc = "";
-        String fieldName = "";
-        String fullMessage = "";
-        String playerType = "";
+    private void parseJson(InputStream inJsonStream, OutputStream outJsonStream) throws IOException {
+
         JsonFactory factory = new JsonFactory();
-        JsonParser jasonParser = factory.createJsonParser(inJsonStream);
-        jasonParser.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE); //stop jasonParser.close from closing stream
+        JsonParser jsonParser = factory.createJsonParser(inJsonStream);
+        jsonParser.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE); //stop jasonParser.close from closing stream
         
-/* use the streaming json parse approach, faster.  But by treating every field as a field & not looking at the objects
- * the sw does a depth first search down the first leg & finishes. This happens to give the player information we want,
- * BUT probably not robust enough for production??
-*/
-        try{
-            if (jasonParser.nextToken() != JsonToken.START_OBJECT) {
-                throw new IOException("no data") ; //stream probably went away                   
+/* use the streaming json parse approach, faster?
+ */
+       while (true) {
+           
+            try {
+                parseJsonElement(jsonParser);
+                processJson();
             }
-            while (jasonParser.nextToken() != JsonToken.END_OBJECT) {
-                fieldName = jasonParser.getCurrentName();
-                fullMessage = fullMessage + "|" + fieldName;
-                jasonParser.nextToken(); // move to value, or START_OBJECT/START_ARRAY
-                fullMessage = fullMessage + ":" + jasonParser.getText();
-                if ("method".equals(fieldName)) { // contains an object in normal XBMC message structure
-                    methodXbmc = jasonParser.getText();
-                } else if("id".equals(fieldName)) { // in this position its a pong response from xbmc & should = "freedomotic"
-                    senderXbmc = jasonParser.getText();
-                    while (jasonParser.nextToken() != JsonToken.END_OBJECT) {
-                        fieldName = jasonParser.getCurrentName(); //could be an object or a string
-                        jasonParser.nextToken(); // move to value
-                        if("sender".equals(fieldName)) {
-                            senderXbmc = jasonParser.getText();
-                        }
-                        if("type".equals(fieldName)) {
-                            playerType = jasonParser.getText();
-                        }
-                    }
+            
+            catch(IOException ioException){ //lost the stream probably
+                //Freedomotic.logger.severe(myXbmcSystem.getXbmcHost()+" : IO Exception in parseJson"); //lost the stream probably, xbmc closed?
+                throw new IOException( "lost connection or bad data");
+            }
+       }
+    }
+    
+    private void parseJsonElement (JsonParser jsonParser) throws IOException {
+
+        JsonToken currentToken;
+        String debugString = "";
+        Integer countObject = 0;
+        Integer countField = 0;
+           
+        do {
+            if (jsonParser.isClosed()) {
+                throw new IOException( "lost connection or bad data");
+            }
+            try {
+                currentToken = jsonParser.nextToken(); // move to next 'token
+                countField = countField + 1;
+                lookupJsonField(jsonParser.getCurrentName(),jsonParser.getText(),countField);// lookup to see if we want the content
+                debugString = debugString+ "||" + jsonParser.getCurrentName() + " | " + jsonParser.getText() + " | " + countField;
+                if (currentToken == JsonToken.END_OBJECT) {
+                    countObject = countObject-1;
+                } else if (currentToken == JsonToken.START_OBJECT) {
+                    countObject = countObject+1;                    
                 }
-            } 
-            //finished parsing the current json message
-            if (methodXbmc.equals("")) { //if we didn't find a std xbmc msg pickup the last fieldname
-                methodXbmc = fieldName;
             }
-            // Do stuff here
-            Freedomotic.logger.severe("Host : "+ str + " ?parsed Json : " + fullMessage); //log semi parsed results for now
-            Freedomotic.logger.severe(str+" : "+ senderXbmc + " : " + methodXbmc); //log xbmc action for now
-            //if (methodXbmc.equals("System.OnQuit")) {
-            //    ProtocolRead event = new ProtocolRead(this, "xbmc", str);
-            //        event.addProperty("powered","true");
-            //        //event.addProperty("object.class","XBMC");
-            //        event.addProperty("object.name", "XBMC-" + str);
-            //   Freedomotic.sendEvent(event);
-            //}
-     
-        } 
-        
-        catch(IOException ioException){
-            throw new IOException( "lost connection or bad data");//lost the stream probably
-        }
-        
-       jasonParser.close(); 
+            
+            catch(IOException ioException){
+                throw new IOException( "lost connection or bad data");//lost the stream probably
+            }
+            
+        } while (countObject != 0);
+        System.out.println("Json = :: " + debugString); 
+
     }
 
-    public void sendJsonPing(BufferedOutputStream outPingStream) throws IOException {
+    
+    
+    private void lookupJsonField (String currentFieldName , String jsonField, Integer countField) throws IOException {
+        
+        if (currentFieldName == null) {
+        }
+        else if (currentFieldName.equalsIgnoreCase("method")) {       
+            if (jsonField.equals("System.OnQuit")) { // XBMC system closing down in an orderly way
+                myXbmcSystem.setXbmcPower("false");
+            } else if (jsonField.equals("Player.OnPlay")) {
+                myXbmcSystem.setXbmcMethod("Play");
+            } else if (jsonField.equals("Player.OnPause")) {
+                myXbmcSystem.setXbmcMethod("Pause");
+            } else if (jsonField.equals("Player.OnStop")) { // Something stopped playing, xbmc includes the type, not the player
+                myXbmcSystem.setXbmcMethod("Stop");
+            }
+                
+        } else if (currentFieldName.equalsIgnoreCase("type")) { 
+                if (jsonField.equalsIgnoreCase("song")) {
+                    myXbmcSystem.setXbmcPlayer("0");
+                } else if (jsonField.equalsIgnoreCase("movie")) {
+                    myXbmcSystem.setXbmcPlayer("1");
+                } else if (jsonField.equalsIgnoreCase("episode")) {
+                    myXbmcSystem.setXbmcPlayer("1");
+                }  else if (jsonField.equalsIgnoreCase("unknown")) {
+                    myXbmcSystem.setXbmcPlayer("1");
+                } else if (jsonField.equalsIgnoreCase("picture")) {
+                    myXbmcSystem.setXbmcPlayer("2");
+                }                                              
+        
+        } else if (currentFieldName.equalsIgnoreCase("playerid")) { 
+                myXbmcSystem.setXbmcPlayer(jsonField);
+        
+        } else if ((countField == 3 ) && (currentFieldName.equalsIgnoreCase("id"))) {  // id in this position means a response from xbmc
+            if (jsonField.equalsIgnoreCase("pong")) {
+                myXbmcSystem.setXbmcPower("true");
+            }
+        }
+        
+    }       
+
+    
+    private void processJson ()  {
+        ProtocolRead event; 
+        
+ //       Freedomotic.logger.severe("xbmcPower = " + myXbmcSystem.getXbmcPower() + " | xbmcMethod = " + myXbmcSystem.getXbmcMethod() + " | xbmcPlayer = " + myXbmcSystem.getXbmcPlayer()); 
+   
+        if ((!myXbmcSystem.getXbmcMethod().equalsIgnoreCase("")) && (!myXbmcSystem.getXbmcPlayer().equalsIgnoreCase(""))) {
+            event = new ProtocolRead(this, "xbmc", myXbmcSystem.getXbmcHost());
+            event.addProperty("object.name", "XBMC-" + myXbmcSystem.getXbmcName());
+            event.addProperty("function", "player" + myXbmcSystem.getXbmcPlayer());
+            event.addProperty("xbmcplayer" + myXbmcSystem.getXbmcPlayer(),myXbmcSystem.getXbmcMethod());
+            Freedomotic.sendEvent(event);
+        } 
+        if (true) {  // always send a power status?
+            event = new ProtocolRead(this, "xbmc", myXbmcSystem.getXbmcHost());
+            event.addProperty("powered",myXbmcSystem.getXbmcPower());
+            event.addProperty("object.name", "XBMC-"+myXbmcSystem.getXbmcName());
+            event.addProperty("function", "power"); 
+            Freedomotic.sendEvent(event);
+        }
+        myXbmcSystem.setXbmcMethod("");
+        myXbmcSystem.setXbmcPlayer("");
+    }
+    
+    private void sendJsonPing() throws IOException {  // used for power detection on startup
         JsonFactory factory = new JsonFactory();
  
-        JsonGenerator jasonGenerator = factory.createJsonGenerator(outPingStream,JsonEncoding.UTF8);
-        jasonGenerator.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET); //stop jasonGenerator.close from closing stream
+        JsonGenerator jsonGenerator = factory.createJsonGenerator(myOutputStream);
+        jsonGenerator.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET); //stop jasonGenerator.close from closing stream
         
-        jasonGenerator.writeStartObject();
-        jasonGenerator.writeStringField("jsonrpc", "2.0");
-        jasonGenerator.writeStringField("method", "JSONRPC.Ping");
-        jasonGenerator.writeStringField("id", "freedomotic");
-        jasonGenerator.writeEndObject();
-        
-        jasonGenerator.close();
+        jsonGenerator.writeStartObject();
+        jsonGenerator.writeStringField("jsonrpc", "2.0");
+        jsonGenerator.writeStringField("method", "JSONRPC.Ping");
+        jsonGenerator.writeStringField("id", "pong");
+        jsonGenerator.writeEndObject();
+        jsonGenerator.close();
    
    }
+    
+     private void getActivePlayers() throws IOException {  // works but not needed?
+        JsonFactory factory = new JsonFactory();
+ 
+        JsonGenerator jsonGenerator = factory.createJsonGenerator(myOutputStream);
+        jsonGenerator.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET); //stop jasonGenerator.close from closing stream
+        jsonGenerator.writeStartObject();
+        jsonGenerator.writeStringField("jsonrpc", "2.0");
+        jsonGenerator.writeStringField("method", "Player.GetActivePlayers");
+        jsonGenerator.writeStringField("id", "GetActivePlayers");
+        jsonGenerator.writeEndObject();
+        jsonGenerator.close();
+        
+     }
+ 
+     private void getPlayerStatus() throws IOException {   // WIP - may need it for startup condition?
+        JsonFactory factory = new JsonFactory();
+ 
+        JsonGenerator jsonGenerator = factory.createJsonGenerator(myOutputStream);
+        jsonGenerator.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET); //stop jasonGenerator.close from closing stream
+        
+        jsonGenerator.writeStartObject();
+        jsonGenerator.writeStringField("jsonrpc", "2.0");
+        jsonGenerator.writeStringField("method", "Player.GetProperties");
+        jsonGenerator.writeStringField("id", "PlayerGetProperties");
+        jsonGenerator.writeArrayFieldStart("params");
+        jsonGenerator.writeStringField("playerid", "1");
+        jsonGenerator.writeArrayFieldStart("properties");
+        jsonGenerator.writeString("speed");
+        jsonGenerator.writeEndArray();
+        jsonGenerator.writeEndArray();
+        jsonGenerator.writeEndObject();
+        jsonGenerator.close();
+        
+     }
 }

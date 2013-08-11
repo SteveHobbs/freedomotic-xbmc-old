@@ -4,6 +4,7 @@
  */
 package com.stevehobbs.xbmc;
 
+
 /**
  *
  * @author steve
@@ -15,27 +16,36 @@ public class XbmcSystem {
     private Integer xbmcPort;
     private String xbmcLocation;
     private Thread xbmcThread;
+    private String xbmcPower;
+    private String xbmcMethod;
+    private String xbmcPlayer;
     
     public XbmcSystem(String xbmcName, String xbmcHost, int xbmcPort, String xbmcLocation) {
+        
         setXbmcName(xbmcName);
         setXbmcHost(xbmcHost);
         setXbmcPort(xbmcPort);
         setXbmcLocation(xbmcLocation);
         setXbmcThread(null);
+        setXbmcPower("false");
+        setXbmcMethod("");
+        setXbmcPlayer("");
+                
     }
 
      public void setXbmcName(String xbmcName) {
         this.xbmcName = xbmcName;
     }
      
-     public String getxbmcName() {
+     public String getXbmcName() {
         return xbmcName;
     }
+     
     public void setXbmcHost(String xbmcHost) {
         this.xbmcHost = xbmcHost;
     }
      
-     public String getxbmcHost() {
+     public String getXbmcHost() {
         return xbmcHost;
      }
      
@@ -43,7 +53,7 @@ public class XbmcSystem {
         this.xbmcLocation = xbmcLocation;
     }
      
-     public String getxbmcLocation() {
+     public String getXbmcLocation() {
         return xbmcLocation;
      }
      
@@ -55,11 +65,35 @@ public class XbmcSystem {
         return xbmcPort;
     }
     
-public void setXbmcThread(Thread xbmcThread) {
+    public void setXbmcThread(Thread xbmcThread) {
         this.xbmcThread = xbmcThread;
     }
 
     public Thread getXbmcThread() {
         return xbmcThread;
+    }
+    
+    public void setXbmcPower(String xbmcPower) {
+        this.xbmcPower = xbmcPower;
+    }
+   
+     public String getXbmcPower() {
+        return xbmcPower;
+     }
+     
+     public void setXbmcMethod(String xbmcMethod) {
+        this.xbmcMethod = xbmcMethod;
+    }
+   
+     public String getXbmcMethod() {
+        return xbmcMethod;
+     }
+     
+      public String getXbmcPlayer() {
+        return xbmcPlayer;
+     }
+     
+     public void setXbmcPlayer(String xbmcPlayer) {
+        this.xbmcPlayer = xbmcPlayer;
     }
 }

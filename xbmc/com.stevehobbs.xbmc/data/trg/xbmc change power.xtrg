@@ -1,6 +1,6 @@
 <trigger>
-    <name>XBMC reads its state</name>
-    <description>XBMC reads its state</description>
+    <name>xbmc change power</name>
+    <description>XBMC power</description>
     <channel>app.event.sensor.protocol.read.xbmc</channel>
     <payload>
         <payload>
@@ -16,6 +16,12 @@
                 <operand>EQUALS</operand>
                 <value>@event.powered</value>
             </it.freedomotic.reactions.Statement>
+            <it.freedomotic.reactions.Statement>
+                <logical>AND</logical>
+                <attribute>function</attribute>
+                <operand>EQUALS</operand>
+                <value>power</value>
+            </it.freedomotic.reactions.Statement> 
         </payload>
     </payload>
     <hardwareLevel>true</hardwareLevel>
