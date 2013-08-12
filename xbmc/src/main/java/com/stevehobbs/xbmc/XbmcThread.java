@@ -169,6 +169,7 @@ public class XbmcThread implements Runnable {
         if ((!myXbmcSystem.getXbmcMethod().equalsIgnoreCase("")) && (!myXbmcSystem.getXbmcPlayer().equalsIgnoreCase(""))) {
             event = new ProtocolRead(this, "xbmc", myXbmcSystem.getXbmcHost());
             event.addProperty("object.name", "XBMC-" + myXbmcSystem.getXbmcName());
+            event.addProperty("object.class", "XBMC");
             event.addProperty("function", "player" + myXbmcSystem.getXbmcPlayer());
             event.addProperty("xbmcplayer" + myXbmcSystem.getXbmcPlayer(),myXbmcSystem.getXbmcMethod());
             Freedomotic.sendEvent(event);
@@ -177,6 +178,7 @@ public class XbmcThread implements Runnable {
             event = new ProtocolRead(this, "xbmc", myXbmcSystem.getXbmcHost());
             event.addProperty("powered",myXbmcSystem.getXbmcPower());
             event.addProperty("object.name", "XBMC-"+myXbmcSystem.getXbmcName());
+            event.addProperty("object.class", "XBMC");
             event.addProperty("function", "power"); 
             Freedomotic.sendEvent(event);
         }
