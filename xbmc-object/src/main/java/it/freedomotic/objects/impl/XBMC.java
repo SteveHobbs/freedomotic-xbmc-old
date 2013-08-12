@@ -5,16 +5,8 @@
 package it.freedomotic.objects.impl;
 
 import it.freedomotic.model.ds.Config;
-import it.freedomotic.model.object.Behavior;
-import it.freedomotic.model.object.BooleanBehavior;
-import it.freedomotic.model.object.RangedIntBehavior;
-import it.freedomotic.objects.BehaviorLogic;
-import it.freedomotic.objects.BooleanBehaviorLogic;
-import it.freedomotic.objects.ListBehaviorLogic;
 import it.freedomotic.model.object.ListBehavior;
-import it.freedomotic.objects.RangedIntBehaviorLogic;
-import it.freedomotic.reactions.CommandPersistence;
-import it.freedomotic.reactions.Command;
+import it.freedomotic.objects.ListBehaviorLogic;
 
 
 /**

@@ -1,0 +1,85 @@
+# NetBeans specific #
+#####################
+nbproject/
+build/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+findbugs.settings
+pmd.setting
+PACKAGE
+
+# Java specific #
+#################
+*.class
+*.jar
+*.war
+*.ear
+
+# Archieves #
+#############
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Log doc and databases #
+#########################
+*.log
+*.csv
+*.txt
+*.TXT
+*.html
+*.HTML
+*.sql
+*.sqlite
+
+# OS generated files #
+######################
+.DS_Store*
+ehthumbs.db
+Icon?
+Thumbs.db
+Desktop.ini
+*~
+*.lck
+*.deb
+
+# Freedomotic #
+###############
+/plugins/*/*/*/market-dist/
+/plugins/*/*/nbproject/private/
+/plugins/*/*/*/javadoc/
+/*/*/nbproject/private/
+/framework/freedomotic-core/plugins/
+market-dist/
+/framework/freedomotic-core/build.number
+/framework/freedomotic-core/data/resources/user/
+/framework/freedomotic-core/data/resources/temp/
+/framework/freedomotic-core/data
+/framework/freedomotic-core/releasetoupload
+/framework/freedomotic-core/log/
+nbproject/
+log/
+/data/
+
+# Maven #
+#########
+target/
+
+#IntelliJ#
+*.iml
+.idea/
+
+# Libraries (negate general jar rule) #
+#######################################
+!/scripts/shared/*.txt
+!/scripts/shared/*.TXT
+!copying.txt
+!LICENSE_HEADER.txt

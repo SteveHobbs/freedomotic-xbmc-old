@@ -13,7 +13,7 @@
         <groupId>it.freedomotic</groupId>
         <artifactId>freedomotic</artifactId>
         <version>5.5-SNAPSHOT</version>
-        <relativePath>../../hobbssj-sandbox</relativePath>
+        <relativePath>../freedomotic</relativePath>
     </parent> 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
