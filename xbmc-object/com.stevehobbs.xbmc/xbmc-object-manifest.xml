@@ -1,0 +1,11 @@
+<config>
+    <properties>
+        <property name="name" value="xbmc-object"/>
+        <property name="description" value="It is a xbmc object"/>
+        <property name="version" value="1.0.0"/>
+        <property name="required" value="5.5.0"/>
+        <property name="category" value="category"/>
+        <property name="short-name" value="shortname"/>
+    </properties>
+</config>
+                

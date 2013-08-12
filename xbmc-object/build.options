@@ -1,0 +1,14 @@
+#Mon Aug 12 23:32:50 CEST 2013
+package.vendor.nation=com
+package.license=GNU GPL2
+package.vendor.name=stevehobbs
+package.version=1.0-SNAPSHOT
+package.name=com.stevehobbs.xbmc
+framework.required.minor=4
+package.vendor.surname=Steve
+package.vendor.contact=info@stevehobbs.com
+package.nodeid=999932
+package.vendor.company=stevehobbs
+framework.required.major=5
+framework.required.build=x
+package.type=object
